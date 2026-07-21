@@ -1,0 +1,23 @@
+Options -MultiViews
+RewriteEngine On
+RewriteBase /kip-kuliah/
+
+# Remove trailing slash if not a directory
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)/$ $1 [R=301,L]
+
+# Redirect direct .php access to non-.php (only for GET/HEAD to preserve POST)
+RewriteCond %{REQUEST_METHOD} ^(GET|HEAD)$
+RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /kip-kuliah/([^.]+)\.php\ HTTP
+RewriteRule ^([^.]+)\.php$ $1 [R=301,L]
+
+# Pretty URLs for endpoints expecting a 5-character Kode Transaksi
+RewriteRule ^pendaftaran/([A-Z0-9]{5})$ pendaftaran.php?kode=$1 [QSA,L]
+RewriteRule ^detail_pendaftaran/([A-Z0-9]{5})$ detail_pendaftaran.php?kode=$1 [QSA,L]
+RewriteRule ^cetak_bukti/([A-Z0-9]{5})$ cetak_bukti.php?kode=$1 [QSA,L]
+RewriteRule ^admin/verifikasi/([A-Z0-9]{5})$ admin/verifikasi.php?kode=$1 [QSA,L]
+
+# Internally route non-.php to .php if the file exists
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^(.*)$ $1.php [L,QSA]
