@@ -112,7 +112,11 @@ $flash = getFlash();
 </nav>
 <?php endif; ?>
 
+<?php if (empty($isFullWidthPage)): ?>
 <main class="max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow">
+<?php else: ?>
+<main class="w-full flex-grow flex flex-col">
+<?php endif; ?>
 
 <?php if ($flash): ?>
   <div id="globalFlashMessage" class="fixed top-6 left-1/2 transform -translate-x-1/2 z-[100] w-full max-w-md px-4 sm:px-0 animate-fade-in-down">
