@@ -1,6 +1,10 @@
-Options -MultiViews
+Options -MultiViews -Indexes
 RewriteEngine On
 RewriteBase /kip-kuliah/
+
+# Error Documents
+ErrorDocument 404 /kip-kuliah/pages/404.php
+ErrorDocument 403 /kip-kuliah/pages/403.php
 
 # Remove trailing slash if not a directory
 RewriteCond %{REQUEST_FILENAME} !-d
