@@ -3,51 +3,6 @@ require_once __DIR__ . '/../config.php';
 
 if (isLoggedIn()) redirect('dashboard');
 
-$errors = [];
-$old = ['nama_lengkap' => '', 'email' => '', 'no_wa' => ''];
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $old['nama_lengkap'] = trim($_POST['nama_lengkap'] ?? '');
-    $old['email']        = trim($_POST['email'] ?? '');
-    
-    // Format nomor WA
-    $noWa = trim($_POST['no_wa'] ?? '');
-    if (strpos($noWa, '+62') === 0) {
-        $noWa = '0' . substr($noWa, 3);
-    } elseif (strpos($noWa, '62') === 0) {
-        $noWa = '0' . substr($noWa, 2);
-    }
-    $old['no_wa'] = $noWa;
-    
-    $password             = $_POST['password'] ?? '';
-    $passwordConfirm      = $_POST['password_confirm'] ?? '';
-
-    if ($old['nama_lengkap'] === '') $errors[] = 'Nama lengkap wajib diisi.';
-    if (!filter_var($old['email'], FILTER_VALIDATE_EMAIL)) $errors[] = 'Format email tidak valid.';
-    if ($old['no_wa'] !== '' && !preg_match('/^08[0-9]{7,12}$/', $old['no_wa'])) $errors[] = 'Format nomor WhatsApp tidak valid. (Gunakan 08...)';
-    if (strlen($password) < 8) $errors[] = 'Password minimal 8 karakter.';
-    if ($password !== $passwordConfirm) $errors[] = 'Konfirmasi password tidak cocok.';
-
-    if (empty($errors)) {
-        $db = getDB();
-        $stmt = $db->prepare('SELECT id FROM users WHERE email = ?');
-        $stmt->execute([$old['email']]);
-        if ($stmt->fetch()) {
-            $errors[] = 'Email sudah terdaftar. Silakan gunakan email lain atau login.';
-        } else {
-            $hash = password_hash($password, PASSWORD_DEFAULT);
-            $userCode = substr(str_shuffle("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"), 0, 5);
-            
-            // Set status_akun langsung menjadi 'aktif' tanpa token aktivasi
-            $stmt = $db->prepare('INSERT INTO users (user_code, nama_lengkap, email, password, no_wa, status_akun, token_aktivasi) VALUES (?, ?, ?, ?, ?, "aktif", NULL)');
-            $stmt->execute([$userCode, $old['nama_lengkap'], $old['email'], $hash, $old['no_wa']]);
-
-            setFlash('success', 'Registrasi berhasil! Silakan login untuk melanjutkan.');
-            redirect('auth/login');
-        }
-    }
-}
-
 $pageTitle = 'Registrasi Akun - KIP Kuliah';
 require_once __DIR__ . '/../includes/header.php';
 ?>
@@ -62,15 +17,13 @@ require_once __DIR__ . '/../includes/header.php';
   </div>
 
   <div class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 dark:border-gray-700/50 p-6 sm:p-10 transition-theme">
-    <?php if ($errors): ?>
-      <div class="mb-5 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 rounded-lg px-4 py-3 text-sm">
-        <ul class="list-disc list-inside space-y-1">
-          <?php foreach ($errors as $err): ?><li><?= e($err) ?></li><?php endforeach; ?>
-        </ul>
-      </div>
-    <?php endif; ?>
+    
+    <div id="alertBox" class="hidden mb-5 rounded-lg px-4 py-3 text-sm flex gap-3 items-start border">
+      <span id="alertMessage"></span>
+    </div>
 
-    <form method="POST" class="space-y-4">
+    <form id="registerForm" method="POST" class="space-y-4">
+      <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
       <div>
         <label class="block text-sm font-medium mb-1">Nama Lengkap</label>
         <input type="text" name="nama_lengkap" value="<?= e($old['nama_lengkap']) ?>" required autofocus
@@ -107,7 +60,7 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
       </div>
 
-      <button type="submit" class="w-full bg-gradient-to-r from-primary-600 to-green-600 hover:from-primary-500 hover:to-green-500 text-white font-semibold py-3 rounded-xl transform hover:-translate-y-1 transition-all shadow-lg hover:shadow-primary-500/30">
+      <button type="submit" id="btnSubmit" class="w-full bg-gradient-to-r from-primary-600 to-green-600 hover:from-primary-500 hover:to-green-500 text-white font-semibold py-3 rounded-xl transform hover:-translate-y-1 transition-all shadow-lg hover:shadow-primary-500/30">
         Daftar Sekarang
       </button>
     </form>
@@ -130,6 +83,61 @@ function togglePassword(inputId, iconId) {
     icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
   }
 }
+
+// AJAX Register Submission
+document.getElementById('registerForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const form = this;
+  const btnSubmit = document.getElementById('btnSubmit');
+  const alertBox = document.getElementById('alertBox');
+  const alertMessage = document.getElementById('alertMessage');
+  
+  // Client-side validation for password match
+  const password = form.querySelector('[name="password"]').value;
+  const confirmPassword = form.querySelector('[name="password_confirm"]').value;
+  if (password !== confirmPassword) {
+      alertBox.className = 'mb-5 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 rounded-lg px-4 py-3 text-sm';
+      alertMessage.innerHTML = 'Konfirmasi password tidak cocok.';
+      alertBox.classList.remove('hidden');
+      return;
+  }
+  
+  btnSubmit.disabled = true;
+  btnSubmit.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Memproses...`;
+  
+  alertBox.classList.add('hidden');
+  
+  const formData = new FormData(form);
+  
+  fetch('<?= BASE_URL ?>/ajax/auth_register.php', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alertBox.className = 'mb-5 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 rounded-lg px-4 py-3 text-sm';
+      alertMessage.innerHTML = data.message;
+      alertBox.classList.remove('hidden');
+      window.location.href = data.redirect;
+    } else {
+      alertBox.className = 'mb-5 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 rounded-lg px-4 py-3 text-sm';
+      alertMessage.innerHTML = data.message;
+      alertBox.classList.remove('hidden');
+      btnSubmit.disabled = false;
+      btnSubmit.innerHTML = 'Daftar Sekarang';
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alertBox.className = 'mb-5 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 rounded-lg px-4 py-3 text-sm';
+    alertMessage.innerHTML = 'Terjadi kesalahan sistem.';
+    alertBox.classList.remove('hidden');
+    btnSubmit.disabled = false;
+    btnSubmit.innerHTML = 'Daftar Sekarang';
+  });
+});
 </script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
