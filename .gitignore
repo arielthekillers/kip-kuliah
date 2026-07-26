@@ -41,6 +41,3 @@ Thumbs.db
 .vscode/
 *.swp
 *.swo
-
-# Utility scripts
-add_index.php
