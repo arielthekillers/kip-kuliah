@@ -66,12 +66,16 @@ require_once __DIR__ . '/includes/header.php';
       <div class="absolute -top-24 -right-24 w-96 h-96 bg-white opacity-10 rounded-full mix-blend-overlay filter blur-2xl"></div>
       <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-purple-500 opacity-20 rounded-full mix-blend-overlay filter blur-2xl"></div>
       
-      <div class="relative z-10 max-w-2xl">
-        <h1 class="text-3xl sm:text-5xl font-extrabold mb-4 tracking-tight">Pendaftaran <?= e(APP_NAME) ?></h1>
-        <p class="text-primary-50 text-base sm:text-lg leading-relaxed opacity-90 mb-0">
-          Lengkapi data diri, KIP Pendidikan, dan unggah dokumen pendukung untuk mengikuti seleksi.
-          Anda hanya dapat mendaftar pada jalur/gelombang yang sedang terbuka.
+      <div class="relative z-10 md:w-2/3 lg:w-3/4">
+        <h1 class="text-3xl sm:text-5xl font-extrabold mb-4 tracking-tight">Portal KIP Kuliah</h1>
+        <p class="text-primary-50 text-base sm:text-lg leading-relaxed opacity-90 mb-0 italic">
+          "Pendidikan adalah jembatan menuju masa depan yang gemilang. Kami berkomitmen penuh untuk memfasilitasi setiap anak bangsa yang berprestasi agar terus meraih cita-citanya tanpa batas."
         </p>
+      </div>
+
+      <!-- Illustration Image -->
+      <div class="absolute bottom-0 right-0 hidden md:block z-10 pr-8">
+        <img src="<?= BASE_URL ?>/assets/gallery/abdulwachid.png" alt="Ilustrasi KIP" class="h-40 sm:h-56 lg:h-64 object-contain drop-shadow-2xl opacity-90 hover:opacity-100 transition-opacity transition-transform hover:scale-105 duration-300 transform origin-bottom">
       </div>
     </div>
   </div>
