@@ -7,16 +7,38 @@
 declare(strict_types=1);
 
 // ---------------------------------------------------------
+// Load File .env Sederhana
+// ---------------------------------------------------------
+function loadEnv(string $path): void {
+    if (!file_exists($path)) return;
+    $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos(trim($line), '#') === 0) continue;
+        if (strpos($line, '=') !== false) {
+            list($name, $value) = explode('=', $line, 2);
+            $name = trim($name);
+            $value = trim($value);
+            if (!array_key_exists($name, $_SERVER) && !array_key_exists($name, $_ENV)) {
+                putenv(sprintf('%s=%s', $name, $value));
+                $_ENV[$name] = $value;
+                $_SERVER[$name] = $value;
+            }
+        }
+    }
+}
+loadEnv(__DIR__ . '/.env');
+
+// ---------------------------------------------------------
 // Konfigurasi Database (sesuaikan dengan environment Anda)
 // ---------------------------------------------------------
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'kip_kuliah');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-define('DB_CHARSET', 'utf8mb4');
+define('DB_HOST', $_ENV['DB_HOST'] ?? 'localhost');
+define('DB_NAME', $_ENV['DB_NAME'] ?? 'kip_kuliah');
+define('DB_USER', $_ENV['DB_USER'] ?? 'root');
+define('DB_PASS', $_ENV['DB_PASS'] ?? '');
+define('DB_CHARSET', $_ENV['DB_CHARSET'] ?? 'utf8mb4');
 
 // Base URL aplikasi (tanpa trailing slash), dipakai untuk link aktivasi/reset password
-define('BASE_URL', 'http://localhost/kip-kuliah');
+define('BASE_URL', $_ENV['BASE_URL'] ?? 'http://localhost/kip-kuliah');
 
 // Direktori upload
 define('UPLOAD_AVATAR_DIR', __DIR__ . '/assets/uploads/avatars/');
