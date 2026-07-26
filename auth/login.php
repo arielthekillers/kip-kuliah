@@ -7,27 +7,32 @@ $errors = [];
 $oldEmail = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $oldEmail = trim($_POST['email'] ?? '');
-    $password = $_POST['password'] ?? '';
-
-    $db = getDB();
-    $stmt = $db->prepare('SELECT * FROM users WHERE email = ?');
-    $stmt->execute([$oldEmail]);
-    $user = $stmt->fetch();
-
-    if (!$user || !password_verify($password, $user['password'])) {
-        $errors[] = 'Email atau password salah.';
-    } elseif ($user['status_akun'] === 'belum_aktif') {
-        $errors[] = 'Akun Anda belum diaktifkan. Silakan cek email aktivasi Anda.';
-    } elseif ($user['status_akun'] === 'nonaktif') {
-        $errors[] = 'Akun Anda dinonaktifkan. Silakan hubungi administrator.';
+    if (!verifyCsrf($_POST['csrf_token'] ?? '')) {
+        $errors[] = 'Sesi tidak valid atau telah kedaluwarsa. Silakan muat ulang halaman.';
     } else {
-        $_SESSION['user_id'] = (int)$user['id'];
-        logActivity((int)$user['id'], 'Login ke sistem');
-        if ($user['role'] === 'admin') {
-            redirect('admin/index');
+        $oldEmail = trim($_POST['email'] ?? '');
+        $password = $_POST['password'] ?? '';
+
+        $db = getDB();
+        $stmt = $db->prepare('SELECT * FROM users WHERE email = ?');
+        $stmt->execute([$oldEmail]);
+        $user = $stmt->fetch();
+
+        if (!$user || !password_verify($password, $user['password'])) {
+            $errors[] = 'Email atau password salah.';
+        } elseif ($user['status_akun'] === 'belum_aktif') {
+            $errors[] = 'Akun Anda belum diaktifkan. Silakan cek email aktivasi Anda.';
+        } elseif ($user['status_akun'] === 'nonaktif') {
+            $errors[] = 'Akun Anda dinonaktifkan. Silakan hubungi administrator.';
         } else {
-            redirect('dashboard');
+            session_regenerate_id(true); // Mencegah Session Fixation
+            $_SESSION['user_id'] = (int)$user['id'];
+            logActivity((int)$user['id'], 'Login ke sistem');
+            if ($user['role'] === 'admin') {
+                redirect('admin/index');
+            } else {
+                redirect('dashboard');
+            }
         }
     }
 }
@@ -95,6 +100,7 @@ require_once __DIR__ . '/../includes/header.php';
         <?php endif; ?>
 
         <form method="POST" class="space-y-5">
+          <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
           <div>
             <label class="block text-sm font-medium mb-1.5 text-gray-700 dark:text-gray-300">Email</label>
             <div class="relative">

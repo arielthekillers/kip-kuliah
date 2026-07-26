@@ -27,6 +27,14 @@ define('MAX_UPLOAD_SIZE', 3 * 1024 * 1024); // 3 MB
 // Session
 // ---------------------------------------------------------
 if (session_status() === PHP_SESSION_NONE) {
+    session_set_cookie_params([
+        'lifetime' => 86400, // 1 day
+        'path' => '/',
+        'domain' => '',
+        'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
+        'httponly' => true,
+        'samesite' => 'Lax' // Lax is better for general navigation than Strict
+    ]);
     session_start();
 }
 
