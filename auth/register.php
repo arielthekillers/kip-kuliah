@@ -26,17 +26,17 @@ require_once __DIR__ . '/../includes/header.php';
       <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
       <div>
         <label class="block text-sm font-medium mb-1">Nama Lengkap</label>
-        <input type="text" name="nama_lengkap" value="<?= e($old['nama_lengkap']) ?>" required autofocus
+        <input type="text" name="nama_lengkap" required autofocus
                class="w-full rounded-xl border-transparent bg-gray-100 dark:bg-gray-800/50 px-4 py-3 text-sm focus:bg-white dark:focus:bg-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition">
       </div>
       <div>
         <label class="block text-sm font-medium mb-1">Email Aktif</label>
-        <input type="email" name="email" value="<?= e($old['email']) ?>" required
+        <input type="email" name="email" required
                class="w-full rounded-xl border-transparent bg-gray-100 dark:bg-gray-800/50 px-4 py-3 text-sm focus:bg-white dark:focus:bg-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition">
       </div>
       <div>
         <label class="block text-sm font-medium mb-1">No. WhatsApp Aktif</label>
-        <input type="text" name="no_wa" value="<?= e($old['no_wa']) ?>" placeholder="08xxxxxxxxxx"
+        <input type="text" name="no_wa" placeholder="08xxxxxxxxxx"
                class="w-full rounded-xl border-transparent bg-gray-100 dark:bg-gray-800/50 px-4 py-3 text-sm focus:bg-white dark:focus:bg-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition">
       </div>
       <div>
