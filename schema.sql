@@ -114,3 +114,34 @@ CREATE TABLE `activity_log` (
 
 -- Index tambahan untuk performa query dashboard
 CREATE INDEX idx_pendaftaran_user_status ON pendaftaran(user_id, status);
+
+-- ---------------------------------------------------------
+-- Tabel: periode_pendaftaran
+-- ---------------------------------------------------------
+CREATE TABLE `periode_pendaftaran` (
+  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `nama_periode` VARCHAR(150) NOT NULL,
+  `tanggal_buka` DATETIME NOT NULL,
+  `tanggal_tutup` DATETIME NOT NULL,
+  `status_periode` ENUM('aktif','nonaktif') NOT NULL DEFAULT 'nonaktif',
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- Index tambahan untuk performa query periode pendaftaran
+CREATE INDEX idx_periode_aktif ON periode_pendaftaran(status_periode, tanggal_buka, tanggal_tutup);
+
+-- ---------------------------------------------------------
+-- Tabel: settings
+-- ---------------------------------------------------------
+CREATE TABLE `settings` (
+  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `app_name` VARCHAR(100) NOT NULL DEFAULT 'KIP Kuliah',
+  `app_timezone` VARCHAR(50) NOT NULL DEFAULT 'Asia/Jakarta',
+  `email_from` VARCHAR(150) NOT NULL DEFAULT 'noreply@kip-kuliah.com',
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- Insert default setting
+INSERT INTO `settings` (`app_name`, `app_timezone`, `email_from`) VALUES ('Sistem Pendaftaran Beasiswa KIP Kuliah', 'Asia/Jakarta', 'noreply@kip-kuliah.com');
