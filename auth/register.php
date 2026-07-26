@@ -35,23 +35,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($stmt->fetch()) {
             $errors[] = 'Email sudah terdaftar. Silakan gunakan email lain atau login.';
         } else {
-            $token = generateToken();
             $hash = password_hash($password, PASSWORD_DEFAULT);
             $userCode = substr(str_shuffle("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"), 0, 5);
-            $stmt = $db->prepare('INSERT INTO users (user_code, nama_lengkap, email, password, no_wa, status_akun, token_aktivasi) VALUES (?, ?, ?, ?, ?, "belum_aktif", ?)');
-            $stmt->execute([$userCode, $old['nama_lengkap'], $old['email'], $hash, $old['no_wa'], $token]);
-
-            $activationLink = BASE_URL . '/auth/aktivasi.php?token=' . $token;
             
-            $subject = 'Aktivasi Akun - ' . APP_NAME;
-            $message = "Halo " . e($old['nama_lengkap']) . ",<br><br>";
-            $message .= "Terima kasih telah mendaftar. Silakan klik link di bawah ini untuk mengaktifkan akun Anda:<br><br>";
-            $message .= "<a href='{$activationLink}'>{$activationLink}</a><br><br>";
-            $message .= "Jika Anda tidak merasa mendaftar, abaikan email ini.<br><br>Terima kasih.";
-            
-            sendAppEmail($old['email'], $subject, $message);
+            // Set status_akun langsung menjadi 'aktif' tanpa token aktivasi
+            $stmt = $db->prepare('INSERT INTO users (user_code, nama_lengkap, email, password, no_wa, status_akun, token_aktivasi) VALUES (?, ?, ?, ?, ?, "aktif", NULL)');
+            $stmt->execute([$userCode, $old['nama_lengkap'], $old['email'], $hash, $old['no_wa']]);
 
-            setFlash('success', 'Registrasi berhasil! Link aktivasi telah dikirim ke email Anda. Silakan cek inbox atau folder spam.');
+            setFlash('success', 'Registrasi berhasil! Silakan login untuk melanjutkan.');
             redirect('auth/login');
         }
     }
