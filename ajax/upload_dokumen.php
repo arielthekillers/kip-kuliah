@@ -66,13 +66,68 @@ if (!is_dir($targetDir)) {
     mkdir($targetDir, 0755, true);
 }
 
-$namaFileSimpan = $jenisDokumen . '_' . time() . '.' . $ext;
+$isImage = in_array($ext, ['jpg', 'jpeg', 'png'], true);
+$namaFileSimpan = $jenisDokumen . '_' . time() . ($isImage ? '.webp' : '.' . $ext);
 $targetPath = $targetDir . $namaFileSimpan;
 $relativePath = 'assets/uploads/dokumen/' . $kodeTransaksi . '/' . $namaFileSimpan;
 
-if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
+$uploadSuccess = false;
+
+if ($isImage) {
+    $sourceImage = false;
+    if ($ext === 'png') {
+        $sourceImage = @imagecreatefrompng($file['tmp_name']);
+        if ($sourceImage !== false) {
+            imagepalettetotruecolor($sourceImage);
+            imagealphablending($sourceImage, true);
+            imagesavealpha($sourceImage, true);
+        }
+    } else {
+        $sourceImage = @imagecreatefromjpeg($file['tmp_name']);
+    }
+
+    if ($sourceImage !== false) {
+        $width = imagesx($sourceImage);
+        $height = imagesy($sourceImage);
+        
+        // Resize jika lebar lebih dari 1600px
+        if ($width > 1600) {
+            $newWidth = 1600;
+            $newHeight = (int)($height * (1600 / $width));
+            $resizedImage = imagecreatetruecolor($newWidth, $newHeight);
+            
+            // Pertahankan transparansi untuk PNG yang dikonversi (walau WebP mendukung, ini best practice)
+            imagealphablending($resizedImage, false);
+            imagesavealpha($resizedImage, true);
+            $transparent = imagecolorallocatealpha($resizedImage, 255, 255, 255, 127);
+            imagefilledrectangle($resizedImage, 0, 0, $newWidth, $newHeight, $transparent);
+            
+            imagecopyresampled($resizedImage, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+            imagedestroy($sourceImage);
+            $sourceImage = $resizedImage;
+        }
+
+        // Simpan sebagai WebP dengan kualitas 80%
+        $uploadSuccess = imagewebp($sourceImage, $targetPath, 80);
+        imagedestroy($sourceImage);
+    } else {
+        // Fallback jika ekstensi gambar tapi isinya error / GD gagal memuat
+        $namaFileSimpan = $jenisDokumen . '_' . time() . '.' . $ext;
+        $targetPath = $targetDir . $namaFileSimpan;
+        $relativePath = 'assets/uploads/dokumen/' . $kodeTransaksi . '/' . $namaFileSimpan;
+        $uploadSuccess = move_uploaded_file($file['tmp_name'], $targetPath);
+    }
+} else {
+    // PDF atau file lainnya
+    $uploadSuccess = move_uploaded_file($file['tmp_name'], $targetPath);
+}
+
+if (!$uploadSuccess) {
     jsonResponse(['success' => false, 'message' => 'Gagal menyimpan file di server.']);
 }
+
+// Ambil ukuran file baru (setelah dikompres)
+$finalSize = file_exists($targetPath) ? filesize($targetPath) : $file['size'];
 
 try {
     // Hapus record lama (jika ganti file) beserta file fisiknya
@@ -89,7 +144,7 @@ try {
 
     $stmtIns = $db->prepare('INSERT INTO dokumen_pendaftaran (pendaftaran_id, jenis_dokumen, nama_file_asli, nama_file_simpan, path_file, ukuran_file)
                               VALUES (?, ?, ?, ?, ?, ?)');
-    $stmtIns->execute([$pendaftaranId, $jenisDokumen, $file['name'], $namaFileSimpan, $relativePath, $file['size']]);
+    $stmtIns->execute([$pendaftaranId, $jenisDokumen, $file['name'], $namaFileSimpan, $relativePath, $finalSize]);
 
     jsonResponse(['success' => true, 'message' => 'File berhasil diunggah.', 'nama_file' => $file['name']]);
 } catch (Throwable $e) {
