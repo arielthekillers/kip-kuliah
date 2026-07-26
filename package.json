@@ -1,0 +1,24 @@
+{
+  "name": "kip-kuliah",
+  "version": "1.0.0",
+  "description": "Sistem pendaftaran beasiswa KIP Kuliah berbasis web menggunakan PHP & MySQL.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arielthekillers/kip-kuliah.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/arielthekillers/kip-kuliah/issues"
+  },
+  "homepage": "https://github.com/arielthekillers/kip-kuliah#readme",
+  "devDependencies": {
+    "tailwindcss": "^3.4.19"
+  }
+}
