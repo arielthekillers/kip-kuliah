@@ -1,6 +1,6 @@
 <?php
-$pageTitle = 'Beranda Admin - KIP Kuliah';
-require_once __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/../config.php';
+requireAdmin();
 
 $db = getDB();
 
@@ -24,6 +24,9 @@ $stmt = $db->query("
     LIMIT 5
 ");
 $recent = $stmt->fetchAll();
+
+$pageTitle = 'Beranda Admin - KIP Kuliah';
+require_once __DIR__ . '/includes/header.php';
 ?>
 
 <div class="mb-8">

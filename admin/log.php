@@ -1,6 +1,6 @@
 <?php
-$pageTitle = 'Log Aktivitas - Admin';
-require_once __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/../config.php';
+requireAdmin();
 
 $db = getDB();
 
@@ -22,6 +22,9 @@ $stmt->bindValue(1, $limit, PDO::PARAM_INT);
 $stmt->bindValue(2, $offset, PDO::PARAM_INT);
 $stmt->execute();
 $logs = $stmt->fetchAll();
+
+$pageTitle = 'Log Aktivitas - Admin';
+require_once __DIR__ . '/includes/header.php';
 ?>
 
 <div class="mb-8">

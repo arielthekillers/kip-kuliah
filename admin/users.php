@@ -1,6 +1,6 @@
 <?php
-$pageTitle = 'Manajemen User - KIP Kuliah';
-require_once __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/../config.php';
+requireAdmin();
 
 // Handle hapus user
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'hapus_user') {
@@ -37,6 +37,9 @@ $query .= " GROUP BY u.id ORDER BY u.created_at DESC";
 $stmt = $db->prepare($query);
 $stmt->execute($params);
 $users = $stmt->fetchAll();
+
+$pageTitle = 'Manajemen User - KIP Kuliah';
+require_once __DIR__ . '/includes/header.php';
 ?>
 
 <div class="mb-8">

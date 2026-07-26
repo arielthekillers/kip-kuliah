@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../config.php';
+requireAdmin();
 $pageTitle = 'Pengaturan Aplikasi - Admin';
 
 $db = getDB();

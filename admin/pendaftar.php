@@ -1,6 +1,6 @@
 <?php
-$pageTitle = 'Data Pendaftar - KIP Kuliah';
-require_once __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/../config.php';
+requireAdmin();
 
 // Handle hapus pendaftaran
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'hapus_pendaftaran') {
@@ -101,6 +101,9 @@ $query .= " ORDER BY p.submitted_at DESC LIMIT " . (int)$limit . " OFFSET " . (i
 $stmt = $db->prepare($query);
 $stmt->execute($params);
 $pendaftar = $stmt->fetchAll();
+
+$pageTitle = 'Data Pendaftar - KIP Kuliah';
+require_once __DIR__ . '/includes/header.php';
 ?>
 
 <div class="mb-8">
