@@ -1,0 +1,16 @@
+.git
+.gitignore
+.env
+node_modules/
+package.json
+package-lock.json
+tailwind.config.js
+schema.sql
+README.md
+LICENSE
+
+# Ignore user uploads dari local
+assets/uploads/avatars/*
+!assets/uploads/avatars/index.php
+assets/uploads/dokumen/*
+!assets/uploads/dokumen/index.php
