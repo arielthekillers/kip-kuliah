@@ -31,9 +31,9 @@ loadEnv(__DIR__ . '/.env');
 // ---------------------------------------------------------
 // Konfigurasi Database (sesuaikan dengan environment Anda)
 // ---------------------------------------------------------
-define('DB_HOST', $_ENV['DB_HOST'] ?? 'localhost');
-define('DB_NAME', $_ENV['DB_NAME'] ?? 'kip_kuliah');
-define('DB_USER', $_ENV['DB_USER'] ?? 'root');
+define('DB_HOST', $_ENV['DB_HOST'] ?? '');
+define('DB_NAME', $_ENV['DB_NAME'] ?? '');
+define('DB_USER', $_ENV['DB_USER'] ?? '');
 define('DB_PASS', $_ENV['DB_PASS'] ?? '');
 define('DB_CHARSET', $_ENV['DB_CHARSET'] ?? 'utf8mb4');
 
