@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $upd = $db->prepare('UPDATE users SET token_reset = ?, token_reset_expired = ? WHERE id = ?');
         $upd->execute([$token, $expiry, $user['id']]);
 
-        $resetLink = BASE_URL . '/auth/reset_password.php?token=' . $token;
+        $resetLink = BASE_URL . '/auth/reset_password?token=' . $token;
         
         $subject = 'Reset Password - ' . APP_NAME;
         $body = "Halo,<br><br>";

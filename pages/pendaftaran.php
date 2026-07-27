@@ -51,12 +51,12 @@ if (!$data) {
     $stmt = $db->prepare('INSERT INTO pendaftaran (user_id, periode_id, kode_transaksi, current_step, status) VALUES (?, ?, ?, 1, "draft")');
     $stmt->execute([$userId, $periodeId, $kodeTransaksi]);
     $pendaftaranId = (int)$db->lastInsertId();
-    redirect('pendaftaran.php?kode=' . $kodeTransaksi);
+    redirect('pendaftaran?kode=' . $kodeTransaksi);
 }
 
 // Jika sudah terkirim, tidak boleh diedit lagi -> lempar ke halaman detail
 if ($data['status'] !== 'draft' && $data['status'] !== 'menunggu_perbaikan') {
-    redirect('detail_pendaftaran.php?kode=' . $kodeTransaksi);
+    redirect('detail_pendaftaran?kode=' . $kodeTransaksi);
 }
 
 // Ambil dokumen yang sudah diupload (jika ada)

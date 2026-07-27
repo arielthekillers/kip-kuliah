@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCsrf($_POST['csrf_token'] ?? 
         $stmt->execute([$newStatus, $catatanJson, $kodeTransaksi]);
         setFlash('success', 'Status pendaftaran berhasil diperbarui.');
         logActivity(currentUserId(), 'Mengubah status pendaftaran Kode: ' . $kodeTransaksi . ' menjadi ' . $newStatus);
-        redirect('/admin/verifikasi.php?kode=' . $kodeTransaksi);
+        redirect('/admin/verifikasi?kode=' . $kodeTransaksi);
     }
 }
 

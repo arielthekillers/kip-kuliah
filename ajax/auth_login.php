@@ -39,7 +39,7 @@ try {
         $_SESSION['user_id'] = (int)$user['id'];
         logActivity((int)$user['id'], 'Login ke sistem');
         
-        $redirectUrl = ($user['role'] === 'admin') ? BASE_URL . '/admin/index.php' : BASE_URL . '/dashboard.php';
+        $redirectUrl = ($user['role'] === 'admin') ? BASE_URL . '/admin/index' : BASE_URL . '/dashboard';
         jsonResponse(['success' => true, 'message' => 'Login berhasil!', 'redirect' => $redirectUrl]);
     }
 } catch (Throwable $e) {

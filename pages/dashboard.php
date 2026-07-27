@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../config.php';
 requireLogin();
 if (isAdmin()) {
-    redirect('admin/index.php');
+    redirect('admin/index');
 }
 
 $db = getDB();

@@ -65,7 +65,7 @@ try {
     $stmt = $db->prepare('INSERT INTO users (user_code, nama_lengkap, email, password, no_wa, status_akun, token_aktivasi) VALUES (?, ?, ?, ?, ?, "belum_aktif", ?)');
     $stmt->execute([$userCode, $nama_lengkap, $email, $hash, $noWa, $token]);
 
-    $activationLink = BASE_URL . '/auth/activate.php?token=' . $token;
+    $activationLink = BASE_URL . '/auth/activate?token=' . $token;
     $subject = 'Aktivasi Akun KIP Kuliah';
     $message = '<p>Halo ' . e($nama_lengkap) . ',</p>';
     $message .= '<p>Terima kasih telah mendaftar di KIP Kuliah. Silakan klik link berikut untuk mengaktifkan akun Anda:</p>';
@@ -75,7 +75,7 @@ try {
     sendAppEmail($email, $subject, $message);
 
     setFlash('success', 'Registrasi berhasil! Silakan cek email Anda untuk aktivasi akun.');
-    jsonResponse(['success' => true, 'message' => 'Registrasi berhasil!', 'redirect' => BASE_URL . '/auth/login.php']);
+    jsonResponse(['success' => true, 'message' => 'Registrasi berhasil!', 'redirect' => BASE_URL . '/auth/login']);
 } catch (Throwable $e) {
     jsonResponse(['success' => false, 'message' => 'Terjadi kesalahan server.'], 500);
 }
