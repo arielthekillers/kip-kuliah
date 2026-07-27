@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user = $stmt->fetch();
 
     // Pesan yang sama ditampilkan baik email ditemukan atau tidak (mencegah enumerasi akun)
-    $message = 'Jika email terdaftar, instruksi reset password telah dikirim ke email tersebut.';
+    $message = 'Kami telah mengirimkan instruksi reset password ke email Anda (jika terdaftar). Silakan cek kotak masuk atau folder spam.';
 
     if ($user) {
         $token = generateToken();
@@ -52,22 +52,26 @@ require_once __DIR__ . '/../includes/header.php';
       <div class="mb-5 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 rounded-lg px-4 py-3 text-sm">
         <p><?= e($message) ?></p>
       </div>
+
+      <a href="<?= BASE_URL ?>/auth/login" class="block text-center w-full bg-gradient-to-r from-primary-600 to-green-600 hover:from-primary-500 hover:to-green-500 text-white font-semibold py-3 rounded-xl transform hover:-translate-y-1 transition-all shadow-lg mt-6">
+        Lanjut Login
+      </a>
+    <?php else: ?>
+      <form method="POST" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium mb-1">Email Terdaftar</label>
+          <input type="email" name="email" required autofocus
+                 class="w-full rounded-xl border-transparent bg-gray-100 dark:bg-gray-800/50 px-4 py-3 text-sm focus:bg-white dark:focus:bg-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition">
+        </div>
+        <button type="submit" class="w-full bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500 text-white font-semibold py-3 rounded-xl transform hover:-translate-y-1 transition-all shadow-lg hover:shadow-yellow-500/30">
+          Kirim Link Reset
+        </button>
+      </form>
+
+      <p class="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
+        <a href="<?= BASE_URL ?>/auth/login" class="text-primary-600 dark:text-primary-400 font-medium hover:underline">Kembali ke Login</a>
+      </p>
     <?php endif; ?>
-
-    <form method="POST" class="space-y-4">
-      <div>
-        <label class="block text-sm font-medium mb-1">Email Terdaftar</label>
-        <input type="email" name="email" required autofocus
-               class="w-full rounded-xl border-transparent bg-gray-100 dark:bg-gray-800/50 px-4 py-3 text-sm focus:bg-white dark:focus:bg-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition">
-      </div>
-      <button type="submit" class="w-full bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500 text-white font-semibold py-3 rounded-xl transform hover:-translate-y-1 transition-all shadow-lg hover:shadow-yellow-500/30">
-        Kirim Link Reset
-      </button>
-    </form>
-
-    <p class="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
-      <a href="<?= BASE_URL ?>/auth/login" class="text-primary-600 dark:text-primary-400 font-medium hover:underline">Kembali ke Login</a>
-    </p>
   </div>
 </div>
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
