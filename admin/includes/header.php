@@ -143,7 +143,21 @@ $user = currentUser();
 <main class="flex-1 flex flex-col h-screen overflow-y-auto w-full relative z-10">
   <div class="p-6 md:p-10 w-full max-w-7xl mx-auto">
     <?php if ($flash): ?>
-      <div class="mb-6 rounded-xl p-4 <?= $flash['type'] === 'success' ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800' : 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800' ?> border transition-theme animate-fade-in-up">
-        <?= e($flash['message']) ?>
+      <div id="adminFlashMessage" class="mb-6 rounded-xl p-4 <?= $flash['type'] === 'success' ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800' : 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800' ?> border transition-theme animate-fade-in-up flex justify-between items-start">
+        <div><?= e($flash['message']) ?></div>
+        <button type="button" onclick="document.getElementById('adminFlashMessage').style.display='none'" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
       </div>
+      <script>
+        setTimeout(() => {
+          const el = document.getElementById('adminFlashMessage');
+          if (el) {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(-10px)';
+            el.style.transition = 'all 0.4s ease';
+            setTimeout(() => el.remove(), 400);
+          }
+        }, 5000);
+      </script>
     <?php endif; ?>
