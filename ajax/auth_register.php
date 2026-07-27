@@ -16,8 +16,8 @@ if (!verifyCsrf($_POST['csrf_token'] ?? '')) {
 }
 
 $nama_lengkap = trim($_POST['nama_lengkap'] ?? '');
-$email        = trim($_POST['email'] ?? '');
-$password     = $_POST['password'] ?? '';
+$email = trim($_POST['email'] ?? '');
+$password = $_POST['password'] ?? '';
 $passwordConf = $_POST['password_confirm'] ?? '';
 
 // Format nomor WA
@@ -29,16 +29,23 @@ if (strpos($noWa, '+62') === 0) {
 }
 
 $errors = [];
-if ($nama_lengkap === '') $errors[] = 'Nama lengkap wajib diisi.';
-if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Format email tidak valid.';
-if ($noWa !== '' && !preg_match('/^08[0-9]{7,12}$/', $noWa)) $errors[] = 'Format nomor WhatsApp tidak valid. (Gunakan 08...)';
-if (strlen($password) < 8) $errors[] = 'Password minimal 8 karakter.';
-if ($password !== $passwordConf) $errors[] = 'Konfirmasi password tidak cocok.';
+if ($nama_lengkap === '')
+    $errors[] = 'Nama lengkap wajib diisi.';
+if (!filter_var($email, FILTER_VALIDATE_EMAIL))
+    $errors[] = 'Format email tidak valid.';
+if ($noWa !== '' && !preg_match('/^08[0-9]{7,12}$/', $noWa))
+    $errors[] = 'Format nomor WhatsApp tidak valid. (Gunakan 08...)';
+if (strlen($password) < 8)
+    $errors[] = 'Password minimal 8 karakter.';
+if ($password !== $passwordConf)
+    $errors[] = 'Konfirmasi password tidak cocok.';
 
 if (!empty($errors)) {
     // Gabung pesan error jadi satu string HTML
     $errorMsg = '<ul class="list-disc list-inside text-left space-y-1">';
-    foreach ($errors as $e) { $errorMsg .= '<li>' . e($e) . '</li>'; }
+    foreach ($errors as $e) {
+        $errorMsg .= '<li>' . e($e) . '</li>';
+    }
     $errorMsg .= '</ul>';
     jsonResponse(['success' => false, 'message' => $errorMsg]);
 }
@@ -53,11 +60,21 @@ try {
 
     $hash = password_hash($password, PASSWORD_DEFAULT);
     $userCode = substr(str_shuffle("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"), 0, 5);
-    
-    $stmt = $db->prepare('INSERT INTO users (user_code, nama_lengkap, email, password, no_wa, status_akun, token_aktivasi) VALUES (?, ?, ?, ?, ?, "aktif", NULL)');
-    $stmt->execute([$userCode, $nama_lengkap, $email, $hash, $noWa]);
+    $token = generateToken();
 
-    setFlash('success', 'Registrasi berhasil! Silakan login untuk melanjutkan.');
+    $stmt = $db->prepare('INSERT INTO users (user_code, nama_lengkap, email, password, no_wa, status_akun, token_aktivasi) VALUES (?, ?, ?, ?, ?, "belum_aktif", ?)');
+    $stmt->execute([$userCode, $nama_lengkap, $email, $hash, $noWa, $token]);
+
+    $activationLink = BASE_URL . '/auth/activate.php?token=' . $token;
+    $subject = 'Aktivasi Akun KIP Kuliah';
+    $message = '<p>Halo ' . e($nama_lengkap) . ',</p>';
+    $message .= '<p>Terima kasih telah mendaftar di KIP Kuliah. Silakan klik link berikut untuk mengaktifkan akun Anda:</p>';
+    $message .= '<p><a href="' . $activationLink . '">' . $activationLink . '</a></p>';
+    $message .= '<p>Jika Anda tidak mendaftar, abaikan email ini.</p>';
+
+    sendAppEmail($email, $subject, $message);
+
+    setFlash('success', 'Registrasi berhasil! Silakan cek email Anda untuk aktivasi akun.');
     jsonResponse(['success' => true, 'message' => 'Registrasi berhasil!', 'redirect' => BASE_URL . '/auth/login.php']);
 } catch (Throwable $e) {
     jsonResponse(['success' => false, 'message' => 'Terjadi kesalahan server.'], 500);

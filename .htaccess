@@ -1,11 +1,11 @@
 Options -MultiViews -Indexes
 RewriteEngine On
 # RewriteBase dihapus agar relatif, atau gunakan / untuk production
-RewriteBase /
+# RewriteBase /
 
 # Error Documents (mengarah ke root domain)
-ErrorDocument 404 /pages/404.php
-ErrorDocument 403 /pages/403.php
+# ErrorDocument 404 /pages/404.php
+# ErrorDocument 403 /pages/403.php
 
 # Remove trailing slash if not a directory
 RewriteCond %{REQUEST_FILENAME} !-d

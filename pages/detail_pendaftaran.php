@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/../config.php';
 requireLogin();
 
 $db = getDB();
@@ -29,7 +29,7 @@ $badge = statusBadge($data['status']);
 $justSent = isset($_GET['sent']);
 
 $pageTitle = 'Detail Pendaftaran - KIP Kuliah';
-require_once __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="max-w-4xl mx-auto">
@@ -171,4 +171,4 @@ require_once __DIR__ . '/includes/header.php';
   </div>
 </div>
 
-<?php require_once __DIR__ . '/includes/footer.php'; ?>
+<?php require_once __DIR__ . '/../includes/footer.php'; ?>

@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/../config.php';
 requireLogin();
 if (isAdmin()) {
     redirect('admin/index.php');
@@ -56,7 +56,7 @@ $stmtPeriods->execute([$now, $now]);
 $activePeriods = $stmtPeriods->fetchAll();
 
 $pageTitle = APP_NAME . ' - Beranda';
-require_once __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-10 animate-fade-in-up">
@@ -284,4 +284,4 @@ require_once __DIR__ . '/includes/header.php';
   <?php endif; ?>
 </div>
 
-<?php require_once __DIR__ . '/includes/footer.php'; ?>
+<?php require_once __DIR__ . '/../includes/footer.php'; ?>

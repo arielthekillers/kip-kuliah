@@ -57,9 +57,10 @@ require_once __DIR__ . '/../includes/header.php';
 
       <div class="bg-white/70 dark:bg-gray-800/60 backdrop-blur-2xl rounded-3xl shadow-xl border border-white/50 dark:border-gray-700/50 p-6 sm:p-10 transition-theme">
         
-        <div id="alertBox" class="hidden mb-6 rounded-xl px-4 py-3 text-sm flex gap-3 items-start border">
+        <?php $flash = getFlash(); ?>
+        <div id="alertBox" class="<?= $flash ? '' : 'hidden ' ?>mb-6 rounded-xl px-4 py-3 text-sm flex gap-3 items-start border <?= $flash ? ($flash['type'] === 'success' ? 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300' : 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300') : '' ?>">
           <svg class="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          <span id="alertMessage"></span>
+          <span id="alertMessage"><?= $flash ? e($flash['message']) : '' ?></span>
         </div>
 
         <form id="loginForm" method="POST" class="space-y-5">

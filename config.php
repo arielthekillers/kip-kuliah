@@ -29,16 +29,25 @@ function loadEnv(string $path): void {
 loadEnv(__DIR__ . '/.env');
 
 // ---------------------------------------------------------
-// Konfigurasi Database (sesuaikan dengan environment Anda)
+// Load Composer Autoloader
 // ---------------------------------------------------------
-define('DB_HOST', $_ENV['DB_HOST'] ?? '');
-define('DB_NAME', $_ENV['DB_NAME'] ?? '');
-define('DB_USER', $_ENV['DB_USER'] ?? '');
-define('DB_PASS', $_ENV['DB_PASS'] ?? '');
+if (file_exists(__DIR__ . '/vendor/autoload.php')) {
+    require_once __DIR__ . '/vendor/autoload.php';
+}
+
+// ---------------------------------------------------------
+// Konfigurasi Database (dengan cheat localhost)
+// ---------------------------------------------------------
+$isLocalhost = in_array($_SERVER['SERVER_NAME'] ?? '', ['localhost', '127.0.0.1', '::1']);
+
+define('DB_HOST', $isLocalhost ? 'localhost' : ($_ENV['DB_HOST'] ?? ''));
+define('DB_NAME', $isLocalhost ? 'kip_kuliah' : ($_ENV['DB_NAME'] ?? ''));
+define('DB_USER', $isLocalhost ? 'root' : ($_ENV['DB_USER'] ?? ''));
+define('DB_PASS', $isLocalhost ? '' : ($_ENV['DB_PASS'] ?? ''));
 define('DB_CHARSET', $_ENV['DB_CHARSET'] ?? 'utf8mb4');
 
 // Base URL aplikasi (tanpa trailing slash), dipakai untuk link aktivasi/reset password
-define('BASE_URL', $_ENV['BASE_URL'] ?? 'http://localhost/kip-kuliah');
+define('BASE_URL', $isLocalhost ? 'http://localhost/kip-kuliah' : ($_ENV['BASE_URL'] ?? 'http://localhost/kip-kuliah'));
 
 // Direktori upload
 define('UPLOAD_AVATAR_DIR', __DIR__ . '/assets/uploads/avatars/');
@@ -118,13 +127,32 @@ function redirect(string $path): void
 // ---------------------------------------------------------
 function sendAppEmail(string $to, string $subject, string $message): bool
 {
-    $headers = "MIME-Version: 1.0\r\n";
-    $headers .= "Content-type: text/html; charset=UTF-8\r\n";
-    $headers .= "From: " . APP_NAME . " <" . APP_EMAIL_FROM . ">\r\n";
-    $headers .= "Reply-To: " . APP_EMAIL_FROM . "\r\n";
-    $headers .= "X-Mailer: PHP/" . phpversion();
+    $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
 
-    return @mail($to, $subject, $message, $headers);
+    try {
+        $mail->isSMTP();
+        $mail->Host       = $_ENV['SMTP_HOST'] ?? 'smtp-relay.brevo.com';
+        $mail->SMTPAuth   = true;
+        $mail->Username   = $_ENV['SMTP_USER'] ?? '';
+        $mail->Password   = $_ENV['SMTP_PASS'] ?? '';
+        $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port       = $_ENV['SMTP_PORT'] ?? 587;
+
+        $mail->setFrom(APP_EMAIL_FROM, APP_NAME);
+        $mail->addAddress($to);
+        $mail->addReplyTo(APP_EMAIL_FROM, APP_NAME);
+
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body    = $message;
+        $mail->AltBody = strip_tags($message);
+
+        $mail->send();
+        return true;
+    } catch (\PHPMailer\PHPMailer\Exception $e) {
+        error_log("Pesan tidak dapat dikirim. Mailer Error: {$mail->ErrorInfo}");
+        return false;
+    }
 }
 
 // ---------------------------------------------------------

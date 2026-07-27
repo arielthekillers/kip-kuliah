@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/../config.php';
 requireLogin();
 
 $db = getDB();
@@ -69,7 +69,7 @@ foreach ($dokumenRaw as $d) { $dokumen[$d['jenis_dokumen']] = $d; }
 $currentStep = max(1, min(5, (int)$data['current_step']));
 
 $pageTitle = 'Form Pendaftaran - KIP Kuliah';
-require_once __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="max-w-4xl mx-auto">
@@ -398,4 +398,4 @@ require_once __DIR__ . '/includes/header.php';
 <script src="<?= BASE_URL ?>/assets/js/api_wilayah.js"></script>
 <script src="<?= BASE_URL ?>/assets/js/pendaftaran.js"></script>
 
-<?php require_once __DIR__ . '/includes/footer.php'; ?>
+<?php require_once __DIR__ . '/../includes/footer.php'; ?>
