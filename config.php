@@ -104,12 +104,12 @@ try {
         date_default_timezone_set($globalSettings['app_timezone']);
     } else {
         define('APP_NAME', 'KIP Kuliah');
-        define('APP_EMAIL_FROM', 'noreply@kip-kuliah.com');
+        define('APP_EMAIL_FROM', 'noreply@sintesacorp.id');
         date_default_timezone_set('Asia/Jakarta');
     }
 } catch (Exception $e) {
     define('APP_NAME', 'KIP Kuliah');
-    define('APP_EMAIL_FROM', 'noreply@kip-kuliah.com');
+    define('APP_EMAIL_FROM', 'noreply@sintesacorp.id');
     date_default_timezone_set('Asia/Jakarta');
 }
 
@@ -131,16 +131,23 @@ function sendAppEmail(string $to, string $subject, string $message): bool
 
     try {
         $mail->isSMTP();
-        $mail->Host       = $_ENV['SMTP_HOST'] ?? 'smtp-relay.brevo.com';
+        $mail->Host       = getenv('SMTP_HOST') ?: ($_ENV['SMTP_HOST'] ?? 'smtp-relay.brevo.com');
         $mail->SMTPAuth   = true;
-        $mail->Username   = $_ENV['SMTP_USER'] ?? '';
-        $mail->Password   = $_ENV['SMTP_PASS'] ?? '';
+        $mail->Username   = getenv('SMTP_USER') ?: ($_ENV['SMTP_USER'] ?? '');
+        $mail->Password   = getenv('SMTP_PASS') ?: ($_ENV['SMTP_PASS'] ?? '');
         $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port       = $_ENV['SMTP_PORT'] ?? 587;
+        $mail->Port       = getenv('SMTP_PORT') ?: ($_ENV['SMTP_PORT'] ?? 587);
 
-        $mail->setFrom(APP_EMAIL_FROM, APP_NAME);
+        // Pastikan email pengirim sesuai dengan yang diverifikasi di Brevo
+        $senderEmail = getenv('SMTP_FROM') ?: ($_ENV['SMTP_FROM'] ?? APP_EMAIL_FROM);
+        // Fallback jika database masih menyimpan noreply@kip-kuliah.com
+        if ($senderEmail === 'noreply@kip-kuliah.com') {
+            $senderEmail = 'noreply@sintesacorp.id';
+        }
+
+        $mail->setFrom($senderEmail, APP_NAME);
         $mail->addAddress($to);
-        $mail->addReplyTo(APP_EMAIL_FROM, APP_NAME);
+        $mail->addReplyTo($senderEmail, APP_NAME);
 
         $mail->isHTML(true);
         $mail->Subject = $subject;
