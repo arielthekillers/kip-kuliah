@@ -14,6 +14,17 @@ $flash = getFlash();
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title><?= e($pageTitle) ?></title>
 
+<!-- Favicon -->
+<link rel="icon" type="image/svg+xml" href="<?= BASE_URL ?>/favicon.svg">
+
+<!-- Open Graph / Social Media Meta Tags -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="<?= BASE_URL ?>">
+<meta property="og:title" content="<?= e($pageTitle) ?>">
+<meta property="og:description" content="Portal pendaftaran dan penerimaan mahasiswa baru beasiswa KIP Kuliah. Daftar sekarang dan raih masa depan gemilang!">
+<meta property="og:image" content="<?= BASE_URL ?>/favicon.svg">
+<meta name="twitter:card" content="summary_large_image">
+
 <!-- Tailwind CSS via Build -->
 <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css">
 <!-- Cegah flash of wrong theme -->
