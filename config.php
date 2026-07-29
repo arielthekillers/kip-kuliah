@@ -104,12 +104,12 @@ try {
         date_default_timezone_set($globalSettings['app_timezone']);
     } else {
         define('APP_NAME', 'KIP Kuliah');
-        define('APP_EMAIL_FROM', 'noreply@sintesacorp.id');
+        define('APP_EMAIL_FROM', 'noreply@abdulwachid.com');
         date_default_timezone_set('Asia/Jakarta');
     }
 } catch (Exception $e) {
     define('APP_NAME', 'KIP Kuliah');
-    define('APP_EMAIL_FROM', 'noreply@sintesacorp.id');
+    define('APP_EMAIL_FROM', 'noreply@abdulwachid.com');
     date_default_timezone_set('Asia/Jakarta');
 }
 
@@ -127,23 +127,67 @@ function redirect(string $path): void
 // ---------------------------------------------------------
 function sendAppEmail(string $to, string $subject, string $message): bool
 {
+    // Pastikan email pengirim
+    $senderEmail = getenv('SMTP_FROM') ?: ($_ENV['SMTP_FROM'] ?? APP_EMAIL_FROM);
+    
+    // Keamanan Ekstra: Mencegah akun Resend tersuspend.
+    // Jika email pengirim di database/env bukan dari domain abdulwachid.com, 
+    // maka paksa gunakan noreply@abdulwachid.com
+    if (strpos($senderEmail, '@abdulwachid.com') === false) {
+        $senderEmail = 'noreply@abdulwachid.com';
+    }
+
+    // Karena di Resend API Key sama dengan password SMTP, kita gunakan SMTP_PASS
+    $resendApiKey = getenv('SMTP_PASS') ?: ($_ENV['SMTP_PASS'] ?? '');
+
+    // 1. Coba Metode Utama: REST API Resend (Jika API Key ada)
+    if (!empty($resendApiKey)) {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, 'https://api.resend.com/emails');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+            'from'    => APP_NAME . ' <' . $senderEmail . '>',
+            'to'      => [$to],
+            'subject' => $subject,
+            'html'    => $message
+        ]));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Bearer ' . $resendApiKey,
+            'Content-Type: application/json'
+        ]);
+        
+        // Timeout 10 detik agar aplikasi tidak hang jika API Resend mengalami gangguan
+        // Sehingga otomatis mempercepat proses perpindahan (fallback) ke metode SMTP
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        // Resend biasanya mengembalikan HTTP 200 jika berhasil
+        if ($httpCode === 200) {
+            return true;
+        }
+        
+        // Jika gagal, catat error di log lalu lanjutkan ke fallback SMTP
+        error_log("Resend API Gagal (HTTP $httpCode). Fallback ke SMTP. Response: " . (string)$response);
+    }
+
+    // 2. Metode Cadangan (Fallback): SMTP Menggunakan PHPMailer
     $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
 
     try {
         $mail->isSMTP();
-        $mail->Host       = getenv('SMTP_HOST') ?: ($_ENV['SMTP_HOST'] ?? 'smtp-relay.brevo.com');
+        // Ubah default host ke resend
+        $mail->Host       = getenv('SMTP_HOST') ?: ($_ENV['SMTP_HOST'] ?? 'smtp.resend.com');
         $mail->SMTPAuth   = true;
-        $mail->Username   = getenv('SMTP_USER') ?: ($_ENV['SMTP_USER'] ?? '');
-        $mail->Password   = getenv('SMTP_PASS') ?: ($_ENV['SMTP_PASS'] ?? '');
+        // Username default resend adalah 'resend'
+        $mail->Username   = getenv('SMTP_USER') ?: ($_ENV['SMTP_USER'] ?? 'resend');
+        // Password menggunakan SMTP_PASS yang sama dengan API Key
+        $mail->Password   = $resendApiKey;
         $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port       = getenv('SMTP_PORT') ?: ($_ENV['SMTP_PORT'] ?? 587);
-
-        // Pastikan email pengirim sesuai dengan yang diverifikasi di Brevo
-        $senderEmail = getenv('SMTP_FROM') ?: ($_ENV['SMTP_FROM'] ?? APP_EMAIL_FROM);
-        // Fallback jika database masih menyimpan noreply@kip-kuliah.com
-        if ($senderEmail === 'noreply@kip-kuliah.com') {
-            $senderEmail = 'noreply@sintesacorp.id';
-        }
 
         $mail->setFrom($senderEmail, APP_NAME);
         $mail->addAddress($to);
@@ -157,7 +201,7 @@ function sendAppEmail(string $to, string $subject, string $message): bool
         $mail->send();
         return true;
     } catch (\PHPMailer\PHPMailer\Exception $e) {
-        error_log("Pesan tidak dapat dikirim. Mailer Error: {$mail->ErrorInfo}");
+        error_log("Pesan SMTP tidak dapat dikirim. Mailer Error: {$mail->ErrorInfo}");
         return false;
     }
 }

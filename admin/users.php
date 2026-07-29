@@ -18,10 +18,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'hapus
     redirect('admin/users');
 }
 
+// Handle Aktivasi Manual
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'manual_activation') {
+    $userId = (int)($_POST['user_id'] ?? 0);
+    if ($userId) {
+        $db2 = getDB();
+        $db2->prepare("UPDATE users SET status_akun = 'aktif', token_aktivasi = NULL WHERE id = ?")->execute([$userId]);
+        logActivity((int)currentUserId(), "Aktivasi manual akun ID: $userId");
+        setFlash('success', 'Akun berhasil diaktifkan secara manual.');
+    }
+    redirect('admin/users');
+}
+
+// Handle Resend Email Aktivasi
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'resend_email') {
+    $userId = (int)($_POST['user_id'] ?? 0);
+    if ($userId) {
+        $db2 = getDB();
+        $stmt2 = $db2->prepare("SELECT nama_lengkap, email, token_aktivasi FROM users WHERE id = ?");
+        $stmt2->execute([$userId]);
+        $uData = $stmt2->fetch();
+        
+        if ($uData) {
+            $token = $uData['token_aktivasi'];
+            // Generate token baru jika kosong
+            if (empty($token)) {
+                $token = generateToken();
+                $db2->prepare("UPDATE users SET token_aktivasi = ? WHERE id = ?")->execute([$token, $userId]);
+            }
+            
+            $activationLink = BASE_URL . '/auth/activate?token=' . $token;
+            $subject = 'Kirim Ulang: Aktivasi Akun KIP Kuliah';
+            $message = '<p>Halo ' . e($uData['nama_lengkap']) . ',</p>';
+            $message .= '<p>Ini adalah pengingat untuk mengaktifkan akun Anda di KIP Kuliah. Silakan klik link berikut untuk mengaktifkan akun Anda:</p>';
+            $message .= '<p><a href="' . $activationLink . '">' . $activationLink . '</a></p>';
+            $message .= '<p>Jika Anda merasa tidak pernah mendaftar, abaikan email ini.</p>';
+            
+            if (sendAppEmail($uData['email'], $subject, $message)) {
+                logActivity((int)currentUserId(), "Resend email aktivasi untuk ID: $userId");
+                setFlash('success', 'Email aktivasi berhasil dikirim ulang ke ' . e($uData['email']));
+            } else {
+                setFlash('error', 'Gagal mengirim email aktivasi.');
+            }
+        }
+    }
+    redirect('admin/users');
+}
+
 $db = getDB();
 $search = $_GET['search'] ?? '';
 
-$query = "SELECT u.id, u.nama_lengkap, u.email, u.created_at,
+$query = "SELECT u.id, u.nama_lengkap, u.email, u.created_at, u.status_akun,
                  COUNT(p.id) as jumlah_pendaftaran
           FROM users u
           LEFT JOIN pendaftaran p ON p.user_id = u.id
@@ -87,7 +134,12 @@ require_once __DIR__ . '/includes/header.php';
               <td class="px-6 py-4 font-medium text-gray-900 dark:text-gray-100"><?= $i + 1 ?></td>
               <td class="px-6 py-4">
                 <p class="font-bold text-gray-900 dark:text-white"><?= e($u['nama_lengkap']) ?></p>
-                <p class="text-xs text-gray-500"><?= e($u['email']) ?></p>
+                <p class="text-xs text-gray-500 mb-1"><?= e($u['email']) ?></p>
+                <?php if ($u['status_akun'] === 'aktif'): ?>
+                  <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">Aktif</span>
+                <?php else: ?>
+                  <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">Belum Aktif</span>
+                <?php endif; ?>
               </td>
               <td class="px-6 py-4 text-gray-500 dark:text-gray-400"><?= date('d M Y', strtotime($u['created_at'])) ?></td>
               <td class="px-6 py-4 text-center">
@@ -96,10 +148,25 @@ require_once __DIR__ . '/includes/header.php';
                 </span>
               </td>
               <td class="px-6 py-4 text-center">
-                <button onclick="konfirmasiHapusUser(<?= $u['id'] ?>, '<?= e($u['nama_lengkap']) ?>', <?= $u['jumlah_pendaftaran'] ?>)"
-                        class="text-xs font-semibold px-4 py-2 rounded-xl border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition">
-                  Hapus User
-                </button>
+                <div class="flex items-center justify-center gap-2 flex-wrap">
+                  <?php if ($u['status_akun'] !== 'aktif'): ?>
+                    <button onclick="konfirmasiAktivasi(<?= $u['id'] ?>, '<?= e($u['nama_lengkap']) ?>')"
+                            title="Aktivasi Manual"
+                            class="text-xs font-semibold px-3 py-2 rounded-xl bg-green-50 text-green-600 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400 dark:hover:bg-green-900/40 transition">
+                      Aktivasi
+                    </button>
+                    <button onclick="konfirmasiResend(<?= $u['id'] ?>, '<?= e($u['email']) ?>')"
+                            title="Resend Email Aktivasi"
+                            class="text-xs font-semibold px-3 py-2 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/40 transition">
+                      Resend
+                    </button>
+                  <?php endif; ?>
+                  <button onclick="konfirmasiHapusUser(<?= $u['id'] ?>, '<?= e($u['nama_lengkap']) ?>', <?= $u['jumlah_pendaftaran'] ?>)"
+                          title="Hapus User"
+                          class="text-xs font-semibold px-3 py-2 rounded-xl border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition">
+                    Hapus
+                  </button>
+                </div>
               </td>
             </tr>
           <?php endforeach; ?>
@@ -158,5 +225,25 @@ function konfirmasiHapusUser(id, nama, jumlahPendaftaran) {
 function tutupModalHapusUser() {
   document.getElementById('modal-hapus-user').classList.add('hidden');
   document.getElementById('modal-hapus-user').classList.remove('flex');
+}
+
+function konfirmasiAktivasi(id, nama) {
+  if (confirm('Yakin ingin mengaktifkan akun ' + nama + ' secara manual?')) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.innerHTML = '<input type="hidden" name="action" value="manual_activation"><input type="hidden" name="user_id" value="' + id + '">';
+    document.body.appendChild(form);
+    form.submit();
+  }
+}
+
+function konfirmasiResend(id, email) {
+  if (confirm('Kirim ulang email aktivasi ke ' + email + '?')) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.innerHTML = '<input type="hidden" name="action" value="resend_email"><input type="hidden" name="user_id" value="' + id + '">';
+    document.body.appendChild(form);
+    form.submit();
+  }
 }
 </script>

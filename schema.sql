@@ -138,10 +138,10 @@ CREATE TABLE `settings` (
   `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `app_name` VARCHAR(100) NOT NULL DEFAULT 'KIP Kuliah',
   `app_timezone` VARCHAR(50) NOT NULL DEFAULT 'Asia/Jakarta',
-  `email_from` VARCHAR(150) NOT NULL DEFAULT 'noreply@kip-kuliah.com',
+  `email_from` VARCHAR(150) NOT NULL DEFAULT 'noreply@abdulwachid.com',
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
 -- Insert default setting
-INSERT INTO `settings` (`app_name`, `app_timezone`, `email_from`) VALUES ('Sistem Pendaftaran Beasiswa KIP Kuliah', 'Asia/Jakarta', 'noreply@kip-kuliah.com');
+INSERT INTO `settings` (`app_name`, `app_timezone`, `email_from`) VALUES ('Sistem Pendaftaran Beasiswa KIP Kuliah', 'Asia/Jakarta', 'noreply@abdulwachid.com');
