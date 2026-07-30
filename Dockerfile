@@ -5,10 +5,14 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     zip \
     unzip \
+    libpng-dev \
+    libjpeg-dev \
+    libwebp-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install ekstensi PHP (PDO MySQL untuk database)
-RUN docker-php-ext-install pdo pdo_mysql zip
+# Install ekstensi PHP (PDO MySQL, ZIP, dan GD untuk image processing)
+RUN docker-php-ext-configure gd --with-jpeg --with-webp \
+    && docker-php-ext-install pdo pdo_mysql zip gd
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
