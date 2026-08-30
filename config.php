@@ -72,6 +72,15 @@ define('MAX_UPLOAD_SIZE', 3 * 1024 * 1024); // 3 MB
 // Session
 // ---------------------------------------------------------
 if (session_status() === PHP_SESSION_NONE) {
+    // Gunakan folder local untuk menyimpan session agar aman dari permission OS/hosting
+    $sessionPath = __DIR__ . '/sessions';
+    if (!is_dir($sessionPath)) {
+        @mkdir($sessionPath, 0777, true);
+    }
+    if (is_dir($sessionPath) && is_writable($sessionPath)) {
+        session_save_path($sessionPath);
+    }
+
     $cookieParams = [
         'lifetime' => 86400, // 1 day
         'path' => '/',
@@ -79,9 +88,8 @@ if (session_status() === PHP_SESSION_NONE) {
         'samesite' => 'Lax' // Lax is better for general navigation than Strict
     ];
 
-    if ($detectedScheme === 'https') {
-        $cookieParams['secure'] = true;
-    }
+    // Paksa secure false sementara waktu untuk memastikan tidak ada cookie yang diblokir oleh browser di balik proxy
+    $cookieParams['secure'] = false;
 
     session_set_cookie_params($cookieParams);
     session_start();
