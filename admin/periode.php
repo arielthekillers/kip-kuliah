@@ -112,6 +112,7 @@ $periods = $stmt->fetchAll();
               </td>
               <td class="px-6 py-4">
                 <div class="flex justify-center gap-2">
+                  <a href="<?= BASE_URL ?>/admin/export_csv.php?periode_id=<?= $p['id'] ?>" class="text-xs font-semibold px-3 py-1.5 rounded-lg border border-green-200 text-green-600 hover:bg-green-50 dark:border-green-800 dark:text-green-400 dark:hover:bg-green-900/30 transition">Unduh CSV</a>
                   <button type="button" onclick="editPeriod(<?= htmlspecialchars(json_encode($p)) ?>)" class="text-xs font-semibold px-3 py-1.5 rounded-lg border border-primary-200 text-primary-600 hover:bg-primary-50 dark:border-primary-800 dark:text-primary-400 dark:hover:bg-primary-900/30 transition">Edit</button>
                   <form method="POST" onsubmit="return confirm('Yakin ingin menghapus periode ini?');" class="inline-block">
                     <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
