@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/../config.php';
 
 header('Content-Type: text/plain');
 
@@ -15,4 +15,3 @@ echo "Received Cookies: " . print_r($_COOKIE, true) . "\n";
 echo "Session Cookie Params: " . print_r(session_get_cookie_params(), true) . "\n";
 echo "PHP Session Save Path: " . session_save_path() . "\n";
 echo "Is writable save path? " . (is_writable(session_save_path() ?: sys_get_temp_dir()) ? 'Yes' : 'No') . "\n";
-
