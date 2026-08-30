@@ -46,8 +46,22 @@ define('DB_USER', $isLocalhost ? 'root' : ($_ENV['DB_USER'] ?? ''));
 define('DB_PASS', $isLocalhost ? '' : ($_ENV['DB_PASS'] ?? ''));
 define('DB_CHARSET', $_ENV['DB_CHARSET'] ?? 'utf8mb4');
 
-// Base URL aplikasi (tanpa trailing slash), dipakai untuk link aktivasi/reset password
-define('BASE_URL', $isLocalhost ? 'http://localhost/kip-kuliah' : ($_ENV['BASE_URL'] ?? 'http://localhost/kip-kuliah'));
+// Deteksi skema HTTPS secara dinamis (mendukung SSL termination reverse proxy)
+$detectedScheme = (isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] === 'on' || $_SERVER['HTTPS'] === '1'))
+    || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
+    || (isset($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on')
+    ? 'https' : 'http';
+
+$detectedHost = $_SERVER['HTTP_HOST'] ?? 'localhost';
+$defaultBaseUrl = $detectedScheme . '://' . $detectedHost;
+
+// Jika di localhost dan dalam subfolder XAMPP
+if ($isLocalhost && strpos($_SERVER['REQUEST_URI'] ?? '', '/kip-kuliah') !== false) {
+    $defaultBaseUrl .= '/kip-kuliah';
+}
+
+$envBaseUrl = getenv('BASE_URL') ?: ($_ENV['BASE_URL'] ?? null);
+define('BASE_URL', $envBaseUrl ? rtrim($envBaseUrl, '/') : $defaultBaseUrl);
 
 // Direktori upload
 define('UPLOAD_AVATAR_DIR', __DIR__ . '/assets/uploads/avatars/');
@@ -62,7 +76,7 @@ if (session_status() === PHP_SESSION_NONE) {
         'lifetime' => 86400, // 1 day
         'path' => '/',
         'domain' => '',
-        'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
+        'secure' => $detectedScheme === 'https',
         'httponly' => true,
         'samesite' => 'Lax' // Lax is better for general navigation than Strict
     ]);
