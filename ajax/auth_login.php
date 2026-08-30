@@ -35,7 +35,7 @@ try {
     } elseif ($user['status_akun'] === 'nonaktif') {
         jsonResponse(['success' => false, 'message' => 'Akun Anda dinonaktifkan. Silakan hubungi administrator.']);
     } else {
-        // session_regenerate_id(true);
+        session_regenerate_id(true);
         $_SESSION['user_id'] = (int)$user['id'];
         logActivity((int)$user['id'], 'Login ke sistem');
         

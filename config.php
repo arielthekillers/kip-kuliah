@@ -144,10 +144,6 @@ try {
 // ---------------------------------------------------------
 function redirect(string $path): void
 {
-    $logFile = __DIR__ . '/sessions/redirects.log';
-    $logMsg = date('Y-m-d H:i:s') . " - REDIRECT to: " . $path . " | URI: " . ($_SERVER['REQUEST_URI'] ?? '') . " | Session ID: " . session_id() . " | User ID: " . ($_SESSION['user_id'] ?? 'none') . "\n";
-    @file_put_contents($logFile, $logMsg, FILE_APPEND);
-    
     header('Location: ' . BASE_URL . '/' . ltrim($path, '/'));
     exit;
 }
