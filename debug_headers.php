@@ -3,17 +3,16 @@ require_once __DIR__ . '/config.php';
 
 header('Content-Type: text/plain');
 
-echo "--- SERVER HEADERS DEBUG ---\n";
-echo "HTTP_HOST: " . ($_SERVER['HTTP_HOST'] ?? 'not set') . "\n";
-echo "SERVER_NAME: " . ($_SERVER['SERVER_NAME'] ?? 'not set') . "\n";
-echo "SERVER_PORT: " . ($_SERVER['SERVER_PORT'] ?? 'not set') . "\n";
-echo "HTTPS: " . ($_SERVER['HTTPS'] ?? 'not set') . "\n";
-echo "HTTP_X_FORWARDED_PROTO: " . ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? 'not set') . "\n";
-echo "HTTP_X_FORWARDED_SSL: " . ($_SERVER['HTTP_X_FORWARDED_SSL'] ?? 'not set') . "\n";
-echo "HTTP_X_FORWARDED_PORT: " . ($_SERVER['HTTP_X_FORWARDED_PORT'] ?? 'not set') . "\n";
-echo "HTTP_X_FORWARDED_HOST: " . ($_SERVER['HTTP_X_FORWARDED_HOST'] ?? 'not set') . "\n";
-echo "REQUEST_SCHEME: " . ($_SERVER['REQUEST_SCHEME'] ?? 'not set') . "\n";
-echo "BASE_URL: " . BASE_URL . "\n";
-echo "Detected Scheme: " . ($detectedScheme ?? 'not set') . "\n";
-echo "Session Status: " . session_status() . "\n";
+if (!isset($_SESSION['debug_counter'])) {
+    $_SESSION['debug_counter'] = 0;
+}
+$_SESSION['debug_counter']++;
+
+echo "--- SESSION PERSISTENCE TEST ---\n";
+echo "Session ID: " . session_id() . "\n";
+echo "Counter value: " . $_SESSION['debug_counter'] . "\n";
+echo "Received Cookies: " . print_r($_COOKIE, true) . "\n";
 echo "Session Cookie Params: " . print_r(session_get_cookie_params(), true) . "\n";
+echo "PHP Session Save Path: " . session_save_path() . "\n";
+echo "Is writable save path? " . (is_writable(session_save_path() ?: sys_get_temp_dir()) ? 'Yes' : 'No') . "\n";
+
