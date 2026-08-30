@@ -138,9 +138,15 @@ require_once __DIR__ . '/includes/header.php';
         <option value="tidak_lolos_verifikasi" <?= $filterStatus === 'tidak_lolos_verifikasi' ? 'selected' : '' ?>>Tidak Lolos Verifikasi</option>
       </select>
     </div>
-    <button type="submit" class="px-6 py-3 rounded-xl bg-gradient-to-r from-primary-600 to-purple-600 hover:from-primary-500 hover:to-purple-500 text-white font-semibold shadow-lg hover:shadow-primary-500/30 transition transform hover:-translate-y-1 w-full sm:w-auto">
-      Filter
-    </button>
+    <div class="flex gap-2 w-full sm:w-auto">
+      <button type="submit" class="px-6 py-3 rounded-xl bg-gradient-to-r from-primary-600 to-purple-600 hover:from-primary-500 hover:to-purple-500 text-white font-semibold shadow-lg hover:shadow-primary-500/30 transition transform hover:-translate-y-1 w-full sm:w-auto">
+        Filter
+      </button>
+      <a href="<?= BASE_URL ?>/admin/export_csv.php?periode_id=<?= urlencode($filterPeriode) ?>" class="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow-lg hover:shadow-emerald-500/30 transition transform hover:-translate-y-1 text-center w-full sm:w-auto flex items-center justify-center gap-1">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        Unduh CSV
+      </a>
+    </div>
   </form>
 </div>
 
