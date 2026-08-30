@@ -7,27 +7,6 @@ if (!$kodeTransaksi) redirect('/admin/pendaftar');
 
 $db = getDB();
 
-// Handle status change
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCsrf($_POST['csrf_token'] ?? '')) {
-    $newStatus = $_POST['status'] ?? '';
-    $catatanArr = $_POST['catatan_verifikasi'] ?? [];
-    
-    // Filter empty strings and encode to JSON
-    $catatanArr = array_filter((array)$catatanArr, fn($val) => trim($val) !== '');
-    $catatanJson = !empty($catatanArr) ? json_encode(array_values($catatanArr)) : null;
-    
-    if (in_array($newStatus, ['diverifikasi', 'tidak_lolos_verifikasi', 'menunggu_verifikasi', 'menunggu_perbaikan'])) {
-        $stmt = $db->prepare('UPDATE pendaftaran SET status = ?, catatan_verifikasi = ? WHERE kode_transaksi = ?');
-        $stmt->execute([$newStatus, $catatanJson, $kodeTransaksi]);
-        setFlash('success', 'Status pendaftaran berhasil diperbarui.');
-        logActivity(currentUserId(), 'Mengubah status pendaftaran Kode: ' . $kodeTransaksi . ' menjadi ' . $newStatus);
-        redirect('/admin/verifikasi?kode=' . $kodeTransaksi);
-    }
-}
-
-$pageTitle = 'Verifikasi Pendaftar - KIP Kuliah';
-require_once __DIR__ . '/includes/header.php';
-
 $stmt = $db->prepare('
     SELECT p.*, u.nama_lengkap as nama_akun, u.email as email_akun 
     FROM pendaftaran p
@@ -38,6 +17,27 @@ $stmt->execute([$kodeTransaksi]);
 $data = $stmt->fetch();
 
 if (!$data) redirect('/admin/pendaftar');
+
+// Handle status change
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCsrf($_POST['csrf_token'] ?? '')) {
+    $newStatus = $_POST['status'] ?? '';
+    $catatanArr = $_POST['catatan_verifikasi'] ?? [];
+    
+    // Filter empty strings and encode to JSON
+    $catatanArr = array_filter((array)$catatanArr, fn($val) => trim($val) !== '');
+    $catatanJson = !empty($catatanArr) ? json_encode(array_values($catatanArr)) : null;
+    
+    if (in_array($newStatus, ['diverifikasi', 'tidak_lolos_verifikasi', 'menunggu_verifikasi', 'menunggu_perbaikan'])) {
+        $stmtUpdate = $db->prepare('UPDATE pendaftaran SET status = ?, catatan_verifikasi = ? WHERE kode_transaksi = ?');
+        $stmtUpdate->execute([$newStatus, $catatanJson, $kodeTransaksi]);
+        setFlash('success', 'Status pendaftaran berhasil diperbarui.');
+        logActivity(currentUserId(), 'Mengubah status pendaftaran Kode: ' . $kodeTransaksi . ' menjadi ' . $newStatus);
+        redirect('/admin/verifikasi?kode=' . $kodeTransaksi);
+    }
+}
+
+$pageTitle = 'Verifikasi Pendaftar - KIP Kuliah';
+require_once __DIR__ . '/includes/header.php';
 
 // Ambil dokumen
 $stmtDocs = $db->prepare('SELECT * FROM dokumen_pendaftaran WHERE pendaftaran_id = ?');
@@ -56,7 +56,7 @@ $badge = statusBadge($data['status']);
     <h1 class="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-purple-600 dark:from-primary-400 dark:to-purple-400">Verifikasi Data</h1>
     <p class="text-gray-500 dark:text-gray-400 mt-1">Kode Pendaftaran: <?= e($data['kode_pendaftaran'] ?: $kodeTransaksi) ?></p>
   </div>
-  <a href="pendaftar" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+  <a href="<?= BASE_URL ?>/admin/pendaftar" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition">
     &larr; Kembali
   </a>
 </div>
